@@ -21,7 +21,6 @@ import traceback
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, AsyncIterator
 
 from tools.config import LOG_DIR

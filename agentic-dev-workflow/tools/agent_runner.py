@@ -21,7 +21,6 @@ import asyncio
 import logging
 import sys
 import time
-from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
@@ -39,7 +38,6 @@ from tools.reviewer_agent   import review_feature
 from tools.wizard import (
     FailureEvent,
     append_run_log,
-    diagnose_and_report,
     pipeline_stage,
 )
 from tools.preflight import run_preflight_checks
