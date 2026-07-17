@@ -1,0 +1,46 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment secrets — never commit the real .env
+.env
+# .env.example is intentionally tracked
+
+# ── Pipeline runtime output ───────────────────────────────────────────────────
+# Top-level generated/output directories written by developer_agent.py
+# (OUTPUT_DIR = generated/ by default; any feature subdirectory lands here)
+generated/
+output/
+
+# Any project-named subdirectory the pipeline might create at the repo root
+# (e.g. example_feature/, my_project/) – catch-all for feature output dirs
+# that land outside generated/ when OUTPUT_DIR is customised.
+# The patterns below match single-level feature dirs commonly produced:
+example_feature/
+my_project/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+# logs/ contains agent_runner.log and pipeline_runs.jsonl (written by wizard)
+logs/
+*.log
+
+# ── Spec/review artefacts written to disk during a pipeline run ──────────────
+# spec_validator.py, reviewer_agent.py, guardrail_enforcer.py do not write
+# files themselves; developer_agent.write_generated_files() writes to
+# OUTPUT_DIR/<feature_name>/* — already covered by generated/ above.
+# Catch loose artefacts if output path is overridden:
+specs/**/*.tmp
+*.review.json
+*.guardrail.json
+*.verdict.json
+
+# ── Python build / cache ─────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.egg-info/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+*.zip
+*.b64

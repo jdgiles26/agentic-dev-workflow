@@ -1,0 +1,35 @@
+# TDD Plan for <Feature Name>
+# Each test case maps 1-to-1 with a pytest test the Developer Agent must write.
+
+tests:
+  - id: TC-01
+    name: "Happy path — basic valid input"
+    description: "Core function returns the expected value for a standard input."
+    inputs:
+      arg1: ~   # replace with actual value
+    expected_result: ~  # replace with expected return value
+    expected_exception: ~
+
+  - id: TC-02
+    name: "Edge case — boundary value"
+    description: "Verify behaviour at the boundary of valid input range."
+    inputs:
+      arg1: ~
+    expected_result: ~
+    expected_exception: ~
+
+  - id: TC-03
+    name: "Invalid input — raises exception"
+    description: "Non-numeric or otherwise invalid input must raise ValueError."
+    inputs:
+      arg1: "invalid"
+    expected_result: ~
+    expected_exception: ValueError
+
+  - id: TC-04
+    name: "Edge case — negative / zero / large value"
+    description: "Ensure correctness at extremes."
+    inputs:
+      arg1: ~
+    expected_result: ~
+    expected_exception: ~

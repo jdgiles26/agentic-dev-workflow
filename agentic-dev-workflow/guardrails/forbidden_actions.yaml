@@ -1,0 +1,42 @@
+# Patterns that are NEVER allowed in generated code.
+# The guardrail_enforcer.py static scanner checks every line of every .py file.
+
+forbidden:
+  # ── Filesystem destruction ────────────────────────────────────────────────
+  - "os.remove"
+  - "os.unlink"
+  - "os.rmdir"
+  - "shutil.rmtree"
+  - "pathlib.Path.unlink"
+  - "pathlib.Path.rmdir"
+
+  # ── Shell / process execution ─────────────────────────────────────────────
+  - "os.system"
+  - "os.popen"
+  - "subprocess.call"
+  - "subprocess.Popen"
+  - "subprocess.run"
+  - "subprocess.check_output"
+
+  # ── Dynamic code execution ────────────────────────────────────────────────
+  - "eval("
+  - "exec("
+  - "__import__("
+  - "importlib.import_module"
+  - "compile("
+
+  # ── Deserialization risks ─────────────────────────────────────────────────
+  - "pickle.loads"
+  - "pickle.load"
+  - "marshal.loads"
+  - "yaml.load("          # must use yaml.safe_load
+
+  # ── Network access (blocked unless allow_network: true) ───────────────────
+  - "import requests"
+  - "from requests"
+  - "urllib.request"
+  - "import socket"
+  - "import http.client"
+  - "import ftplib"
+  - "import smtplib"
+  - "import ssl"

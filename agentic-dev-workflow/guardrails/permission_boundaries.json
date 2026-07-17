@@ -1,0 +1,12 @@
+{
+  "read_permitted":  ["specs/", "guardrails/", "agent_instructions/"],
+  "write_permitted": ["generated/"],
+  "network_access":  false,
+  "allowed_imports": [
+    "math", "json", "datetime", "re", "csv",
+    "collections", "itertools", "functools",
+    "pathlib", "typing", "dataclasses",
+    "unittest", "pytest"
+  ],
+  "max_file_size_kb": 512
+}
