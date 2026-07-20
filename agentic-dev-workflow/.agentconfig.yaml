@@ -1,64 +1,44 @@
-# ──────────────────────────────────────────────────────────────────────────────
-# Agentic Dev Workflow — Master Config
-# Talks to a llama.cpp server with an OpenAI-compatible /v1/ API.
-# ──────────────────────────────────────────────────────────────────────────────
-
-# ── llama.cpp server ──────────────────────────────────────────────────────────
-llama:
-  host: "http://127.0.0.1:8012"
-  timeout: 120          # seconds per LLM call
-
-  # "auto"   → ModelManager queries /v1/models and picks per role
-  # "manual" → use the names listed under models: below
-  mode: auto
-
-  models:               # used when mode: manual (or as env-var overrides)
-    developer: "ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF"
-    reviewer:  "ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF"
-    security:  "ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF"
-    validator: "ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF"
-
-  # keyword hints for auto-scoring (first match wins; fallback = first model)
-  hints:
-    developer:
-      - "coder"
-      - "code"
-      - "starcoder"
-      - "deepseek"
-      - "qwen"
-      - "llama"
-    reviewer:
-      - "llama"
-      - "mistral"
-      - "gemma"
-      - "qwen"
-    security:
-      - "phi"
-      - "gemma"
-      - "qwen"
-      - "llama"
-    validator:
-      - "llama"
-      - "mistral"
-      - "qwen"
-
-# ── Orchestration ─────────────────────────────────────────────────────────────
-max_retries: 3
-retry_delay: 2            # seconds between retry attempts
-
-# ── Paths ─────────────────────────────────────────────────────────────────────
-paths:
-  specs:   specs/
-  output:  generated/
-  logs:    logs/
-
-# ── Guardrails ────────────────────────────────────────────────────────────────
 guardrails:
+  allow_network: false
   enforce: true
   forbidden_actions_file: guardrails/forbidden_actions.yaml
-  permissions_file:       guardrails/permission_boundaries.json
-  allow_network: false
-
-# ── Review ────────────────────────────────────────────────────────────────────
+  permissions_file: guardrails/permission_boundaries.json
+llama:
+  hints:
+    developer:
+    - coder
+    - code
+    - starcoder
+    - deepseek
+    - qwen
+    - llama
+    reviewer:
+    - llama
+    - mistral
+    - gemma
+    - qwen
+    security:
+    - phi
+    - gemma
+    - qwen
+    - llama
+    validator:
+    - llama
+    - mistral
+    - qwen
+  host: http://127.0.0.1:8012
+  mode: auto
+  models:
+    developer: ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF
+    reviewer: ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF
+    security: ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF
+    validator: ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF
+  timeout: 120
+max_retries: 3
+paths:
+  logs: logs/
+  output: generated/
+  specs: specs/
+retry_delay: 2
 review:
   coverage_threshold: 80
