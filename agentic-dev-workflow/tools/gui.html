@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agentic Dev Workflow</title>
+<style>
+/* ── Reset & base ─────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;line-height:1.6;color:#1f2328;background:#f7f8fa}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+a{color:#3b82d4}
+code,pre{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.85rem}
+
+/* ── Layout ───────────────────────────────────────────────────────────── */
+header{background:#fff;border-bottom:1px solid #e5e7eb;padding:.75rem 1.5rem;display:flex;align-items:center;gap:.75rem;position:sticky;top:0;z-index:100}
+header h1{font-size:1rem;font-weight:600;color:#1f2328}
+header .subtitle{font-size:.8rem;color:#57606a;margin-left:.25rem}
+.main{display:flex;flex:1;min-height:0}
+.sidebar{width:220px;min-width:220px;background:#fff;border-right:1px solid #e5e7eb;padding:1rem 0;overflow-y:auto;display:flex;flex-direction:column;gap:.125rem}
+.content{flex:1;overflow-y:auto;padding:1.5rem}
+
+/* ── Sidebar nav ──────────────────────────────────────────────────────── */
+.nav-item{display:flex;align-items:center;gap:.625rem;padding:.5rem 1rem;cursor:pointer;border-radius:0;font-size:.85rem;color:#57606a;border-left:3px solid transparent;user-select:none;transition:background .1s,color .1s}
+.nav-item:hover{background:#f7f8fa;color:#1f2328}
+.nav-item.active{background:#f0f6ff;color:#3b82d4;border-left-color:#3b82d4;font-weight:500}
+.nav-item .step-num{width:20px;height:20px;border-radius:50%;background:#e5e7eb;color:#57606a;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-item.active .step-num{background:#3b82d4;color:#fff}
+.nav-item.done .step-num{background:#22863a;color:#fff}
+.nav-item.error .step-num{background:#cb2431;color:#fff}
+.nav-sep{height:1px;background:#e5e7eb;margin:.5rem 1rem}
+
+/* ── Cards ────────────────────────────────────────────────────────────── */
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:.95rem;font-weight:600;margin-bottom:.75rem;color:#1f2328}
+.card p,.card li{font-size:.85rem;color:#57606a}
+.card ul{padding-left:1.25rem;margin-top:.25rem}
+.card li{margin-bottom:.25rem}
+
+/* ── Instruction banner ───────────────────────────────────────────────── */
+.instr{background:#f0f6ff;border:1px solid #b6d4fe;border-radius:6px;padding:.875rem 1rem;margin-bottom:1rem;font-size:.83rem;color:#1f2328}
+.instr strong{display:block;margin-bottom:.25rem;font-size:.85rem;color:#1e40af}
+.instr code{background:#e0ebfd;padding:.1rem .3rem;border-radius:3px}
+
+/* ── Command block ────────────────────────────────────────────────────── */
+.cmd-block{background:#1f2328;color:#e6edf3;border-radius:6px;padding:.75rem 1rem;font-size:.8rem;margin:.5rem 0;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.cmd-block .comment{color:#8b949e}
+.cmd-block .kw{color:#79c0ff}
+
+/* ── Forms ────────────────────────────────────────────────────────────── */
+.form-row{margin-bottom:.875rem}
+label{display:block;font-size:.8rem;font-weight:500;color:#57606a;margin-bottom:.3rem}
+input[type=text],input[type=number],input[type=url],select,textarea{width:100%;border:1px solid #d0d7de;border-radius:5px;padding:.4rem .6rem;font-size:.85rem;font-family:inherit;color:#1f2328;background:#fff;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:#3b82d4;box-shadow:0 0 0 3px rgba(59,130,212,.12)}
+textarea{resize:vertical;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.78rem;line-height:1.5}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border-radius:5px;font-size:.83rem;font-weight:500;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s;white-space:nowrap}
+.btn-primary{background:#2da44e;color:#fff;border-color:#2da44e}
+.btn-primary:hover{background:#2c974b}
+.btn-secondary{background:#fff;color:#1f2328;border-color:#d0d7de}
+.btn-secondary:hover{background:#f3f4f6}
+.btn-danger{background:#fff;color:#cb2431;border-color:#ffa198}
+.btn-danger:hover{background:#ffebe9}
+.btn-accent{background:#3b82d4;color:#fff;border-color:#3b82d4}
+.btn-accent:hover{background:#2f6fbf}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+
+/* ── Status badges ────────────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:99px;font-size:.75rem;font-weight:600}
+.badge-ok{background:#dafbe1;color:#1a7f37}
+.badge-fail{background:#ffebe9;color:#b91c1c}
+.badge-warn{background:#fff8c5;color:#9a6700}
+.badge-idle{background:#f3f4f6;color:#57606a}
+.badge-running{background:#dbeafe;color:#1d4ed8;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ── Preflight table ──────────────────────────────────────────────────── */
+.check-table{width:100%;border-collapse:collapse;font-size:.83rem;margin-top:.5rem}
+.check-table th{text-align:left;padding:.4rem .6rem;background:#f7f8fa;border:1px solid #e5e7eb;font-weight:600;color:#57606a}
+.check-table td{padding:.4rem .6rem;border:1px solid #e5e7eb;vertical-align:top}
+.check-table tr.pass td{background:#f0fff4}
+.check-table tr.fail td{background:#fff5f5}
+.check-detail{color:#57606a;font-size:.78rem;white-space:pre-wrap;margin-top:.25rem}
+
+/* ── Terminal output ──────────────────────────────────────────────────── */
+.terminal{background:#0d1117;color:#e6edf3;border-radius:6px;padding:.75rem;font-size:.78rem;line-height:1.6;height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+.terminal .t-info{color:#79c0ff}
+.terminal .t-warn{color:#e3b341}
+.terminal .t-error{color:#f85149}
+.terminal .t-ok{color:#56d364}
+.terminal .t-dim{color:#8b949e}
+.terminal .t-stage{color:#d2a8ff;font-weight:600}
+
+/* ── Run history table ────────────────────────────────────────────────── */
+.run-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.run-table th{text-align:left;padding:.4rem .6rem;background:#f7f8fa;border:1px solid #e5e7eb;font-weight:600;color:#57606a;white-space:nowrap}
+.run-table td{padding:.4rem .6rem;border:1px solid #e5e7eb;vertical-align:top}
+.run-table tr:hover td{background:#f7f8fa}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────── */
+.tabs{display:flex;border-bottom:1px solid #e5e7eb;margin-bottom:1rem;gap:0}
+.tab{padding:.5rem 1rem;font-size:.83rem;cursor:pointer;border-bottom:2px solid transparent;color:#57606a;user-select:none;margin-bottom:-1px}
+.tab:hover{color:#1f2328}
+.tab.active{border-bottom-color:#3b82d4;color:#3b82d4;font-weight:500}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── Misc ─────────────────────────────────────────────────────────────── */
+.section-title{font-size:1.1rem;font-weight:600;margin-bottom:.75rem;color:#1f2328}
+.muted{color:#57606a;font-size:.83rem}
+.flex-row{display:flex;gap:.75rem;align-items:flex-start;flex-wrap:wrap}
+.grow{flex:1;min-width:200px}
+.empty-state{text-align:center;padding:3rem 1rem;color:#57606a;font-size:.85rem}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1f2328;color:#e6edf3;padding:.6rem 1rem;border-radius:6px;font-size:.83rem;z-index:200;opacity:0;transform:translateY(.5rem);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+footer{text-align:center;padding:.75rem;font-size:.72rem;color:#57606a;border-top:1px solid #e5e7eb;background:#fff;margin-top:auto}
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="8" cy="8" r="7.5" stroke="#3b82d4" stroke-width="1"/>
+    <path d="M5 8l2 2 4-4" stroke="#3b82d4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <h1>Agentic Dev Workflow</h1>
+  <span class="subtitle">— spec-driven, guardrailed AI development loop</span>
+</header>
+
+<div class="main">
+  <!-- Sidebar navigation -->
+  <nav class="sidebar" aria-label="Pipeline steps">
+    <div class="nav-item active" data-step="0" tabindex="0">
+      <span class="step-num">0</span> Pre-flight Checks
+    </div>
+    <div class="nav-item" data-step="1" tabindex="0">
+      <span class="step-num">1</span> Configuration
+    </div>
+    <div class="nav-item" data-step="2" tabindex="0">
+      <span class="step-num">2</span> Feature Spec
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-item" data-step="3" tabindex="0">
+      <span class="step-num">3</span> Run Pipeline
+    </div>
+    <div class="nav-item" data-step="4" tabindex="0">
+      <span class="step-num">4</span> Run History
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-item" data-step="5" tabindex="0">
+      <span class="step-num">5</span> Log Viewer
+    </div>
+  </nav>
+
+  <!-- Main content area -->
+  <main class="content" id="content-area">
+
+    <!-- ── Step 0: Pre-flight ─────────────────────────────────────────── -->
+    <section id="step-0" class="step-section">
+      <h2 class="section-title">Step 0 — Pre-flight Checks</h2>
+
+      <div class="instr">
+        <strong>What this step does</strong>
+        Verifies your environment is ready before any LLM call.
+        Four checks are run: server reachability, model availability,
+        Python dependencies, and output directory write-access.
+        Fix every <strong>FAIL</strong> before proceeding.
+      </div>
+
+      <div class="card">
+        <div class="card-title">Environment requirements</div>
+        <p>The pipeline needs a running <strong>llama.cpp server</strong> with an OpenAI-compatible API.
+        Start it in a separate terminal:</p>
+        <div class="cmd-block"><span class="comment"># start llama.cpp (adjust path and model as needed)</span>
+<span class="kw">llama</span> serve --fim-qwen-3b-default -ngl 99 --port 8012</div>
+        <p>Then click <strong>Run checks</strong> to verify all four requirements.</p>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-accent" id="btn-preflight">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm1 10.5H7V7h2v4.5zM8 6a1 1 0 110-2 1 1 0 010 2z"/>
+          </svg>
+          Run checks
+        </button>
+        <span id="preflight-status" class="badge badge-idle">Not run</span>
+      </div>
+
+      <div id="preflight-results" style="margin-top:1rem;display:none">
+        <table class="check-table">
+          <thead>
+            <tr><th>Check</th><th>Status</th><th>Detail</th></tr>
+          </thead>
+          <tbody id="preflight-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Step 1: Configuration ──────────────────────────────────────── -->
+    <section id="step-1" class="step-section" style="display:none">
+      <h2 class="section-title">Step 1 — Configuration</h2>
+
+      <div class="instr">
+        <strong>What to do here</strong>
+        Review and update your <code>.agentconfig.yaml</code> and <code>.env</code> settings.
+        Changes are saved directly to disk. The most important fields are:
+        <ul style="margin-top:.4rem;padding-left:1.2rem">
+          <li><strong>LLAMA_HOST</strong> — URL of your llama.cpp server</li>
+          <li><strong>max_retries</strong> — how many times the pipeline retries on failure</li>
+          <li><strong>coverage_threshold</strong> — minimum test coverage % to pass review</li>
+          <li><strong>mode</strong> — <code>auto</code> picks the best loaded model; <code>manual</code> uses the names below</li>
+        </ul>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <div class="tab active" role="tab" data-tab="cfg-server" tabindex="0">Server</div>
+        <div class="tab" role="tab" data-tab="cfg-pipeline" tabindex="0">Pipeline</div>
+        <div class="tab" role="tab" data-tab="cfg-env" tabindex="0">Environment (.env)</div>
+      </div>
+
+      <!-- Server tab -->
+      <div id="cfg-server" class="tab-panel active">
+        <div class="flex-row">
+          <div class="grow form-row">
+            <label for="cfg-host">LLAMA_HOST</label>
+            <input type="url" id="cfg-host" placeholder="http://127.0.0.1:8012">
+          </div>
+          <div class="grow form-row">
+            <label for="cfg-timeout">Timeout (seconds)</label>
+            <input type="number" id="cfg-timeout" min="10" max="600" step="10">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="cfg-mode">Model selection mode</label>
+          <select id="cfg-mode">
+            <option value="auto">auto — query /v1/models and score by keyword hints</option>
+            <option value="manual">manual — use the exact model names specified below</option>
+          </select>
+        </div>
+        <div id="manual-models" style="display:none">
+          <div class="flex-row">
+            <div class="grow form-row"><label for="cfg-m-dev">Developer model</label><input type="text" id="cfg-m-dev"></div>
+            <div class="grow form-row"><label for="cfg-m-rev">Reviewer model</label><input type="text" id="cfg-m-rev"></div>
+          </div>
+          <div class="flex-row">
+            <div class="grow form-row"><label for="cfg-m-sec">Security model</label><input type="text" id="cfg-m-sec"></div>
+            <div class="grow form-row"><label for="cfg-m-val">Validator model</label><input type="text" id="cfg-m-val"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline tab -->
+      <div id="cfg-pipeline" class="tab-panel">
+        <div class="flex-row">
+          <div class="grow form-row">
+            <label for="cfg-retries">Max retries</label>
+            <input type="number" id="cfg-retries" min="1" max="10">
+          </div>
+          <div class="grow form-row">
+            <label for="cfg-delay">Retry delay (seconds)</label>
+            <input type="number" id="cfg-delay" min="0" max="60" step="0.5">
+          </div>
+          <div class="grow form-row">
+            <label for="cfg-coverage">Coverage threshold (%)</label>
+            <input type="number" id="cfg-coverage" min="0" max="100">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>
+            <input type="checkbox" id="cfg-enforce" style="width:auto;margin-right:.4rem">
+            Enforce guardrails (uncheck to warn-only — for local debugging only)
+          </label>
+        </div>
+      </div>
+
+      <!-- Env tab -->
+      <div id="cfg-env" class="tab-panel">
+        <div class="instr">
+          <strong>How to use this tab</strong>
+          These values are written to <code>.env</code> in the project root and override
+          values in <code>.agentconfig.yaml</code>.
+          Leave model fields blank to use auto-selection.
+        </div>
+        <div class="flex-row">
+          <div class="grow form-row"><label for="env-llama-host">LLAMA_HOST</label><input type="url" id="env-llama-host"></div>
+          <div class="grow form-row"><label for="env-timeout">LLAMA_TIMEOUT</label><input type="number" id="env-timeout" min="10" max="600" step="10"></div>
+        </div>
+        <div class="flex-row">
+          <div class="grow form-row"><label for="env-dev-model">LLAMA_DEVELOPER_MODEL</label><input type="text" id="env-dev-model" placeholder="leave blank for auto"></div>
+          <div class="grow form-row"><label for="env-rev-model">LLAMA_REVIEWER_MODEL</label><input type="text" id="env-rev-model" placeholder="leave blank for auto"></div>
+        </div>
+        <div class="flex-row">
+          <div class="grow form-row"><label for="env-sec-model">LLAMA_SECURITY_MODEL</label><input type="text" id="env-sec-model" placeholder="leave blank for auto"></div>
+          <div class="grow form-row"><label for="env-val-model">LLAMA_VALIDATOR_MODEL</label><input type="text" id="env-val-model" placeholder="leave blank for auto"></div>
+        </div>
+        <div class="form-row">
+          <label for="env-log-level">LOG_LEVEL</label>
+          <select id="env-log-level">
+            <option value="DEBUG">DEBUG</option>
+            <option value="INFO">INFO</option>
+            <option value="WARNING">WARNING</option>
+            <option value="ERROR">ERROR</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-save-config">Save configuration</button>
+        <button class="btn btn-secondary" id="btn-reload-config">Reload from disk</button>
+      </div>
+    </section>
+
+    <!-- ── Step 2: Feature Spec ───────────────────────────────────────── -->
+    <section id="step-2" class="step-section" style="display:none">
+      <h2 class="section-title">Step 2 — Feature Spec (PRD + TDD)</h2>
+
+      <div class="instr">
+        <strong>What to do here</strong>
+        Create or edit the spec files for the feature you want to build.
+        The pipeline needs two files in <code>specs/&lt;feature_name&gt;/</code>:
+        <ul style="margin-top:.4rem;padding-left:1.2rem">
+          <li><strong>prd.md</strong> — Product Requirements Document.
+            Use the <em>## Acceptance Criteria</em> section — the validator LLM checks
+            every numbered criterion against the TDD.</li>
+          <li><strong>tdd.yaml</strong> — Test-Driven Design plan.
+            Each test case maps to a pytest test the Developer Agent must write.
+            Required keys: <code>id</code>, <code>name</code>, <code>description</code>,
+            <code>inputs</code>, <code>expected_result</code>, <code>expected_exception</code>.</li>
+        </ul>
+        Click <strong>Load template</strong> to start from a blank template,
+        or pick an existing feature from the dropdown.
+      </div>
+
+      <div class="flex-row" style="margin-bottom:1rem;align-items:center">
+        <div class="grow form-row" style="margin-bottom:0">
+          <label for="spec-feature-name">Feature name (folder name under specs/)</label>
+          <input type="text" id="spec-feature-name" placeholder="e.g. my_calculator">
+        </div>
+        <div style="margin-top:1.35rem">
+          <select id="spec-feature-picker" style="height:2rem;padding:.2rem .5rem;font-size:.82rem">
+            <option value="">— pick existing —</option>
+          </select>
+        </div>
+        <div style="margin-top:1.35rem">
+          <button class="btn btn-secondary" id="btn-load-spec">Load feature</button>
+          <button class="btn btn-secondary" id="btn-load-template">Load template</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <div class="tab active" role="tab" data-tab="spec-prd" tabindex="0">prd.md</div>
+        <div class="tab" role="tab" data-tab="spec-tdd" tabindex="0">tdd.yaml</div>
+      </div>
+
+      <div id="spec-prd" class="tab-panel active">
+        <textarea id="ta-prd" rows="26" placeholder="Paste or type your PRD here…" spellcheck="false"></textarea>
+      </div>
+      <div id="spec-tdd" class="tab-panel">
+        <textarea id="ta-tdd" rows="26" placeholder="Paste or type your TDD YAML here…" spellcheck="false"></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-save-spec">Save spec files to disk</button>
+      </div>
+    </section>
+
+    <!-- ── Step 3: Run Pipeline ───────────────────────────────────────── -->
+    <section id="step-3" class="step-section" style="display:none">
+      <h2 class="section-title">Step 3 — Run Pipeline</h2>
+
+      <div class="instr">
+        <strong>What happens when you click Run</strong>
+        The server launches <code>python -m tools.agent_runner &lt;feature&gt; --skip-preflight</code>
+        as a real subprocess and streams its stdout/stderr here line-by-line via
+        Server-Sent Events. The pipeline runs these stages in order:
+        <ol style="margin-top:.4rem;padding-left:1.4rem">
+          <li><strong>Spec validation</strong> — LLM checks PRD ↔ TDD consistency</li>
+          <li><strong>Code generation</strong> — Developer Agent writes <code>src/</code> + <code>tests/</code></li>
+          <li><strong>Guardrail scan</strong> — static + semantic security check</li>
+          <li><strong>Review + pytest</strong> — tests run, coverage measured, LLM verdict issued</li>
+          <li><strong>Retry loop</strong> — up to <em>max_retries</em> attempts if review fails</li>
+        </ol>
+        Enable <strong>Wizard mode</strong> to get structured diagnostics on every failure.
+      </div>
+
+      <div class="card">
+        <div class="card-title">Run settings</div>
+        <div class="flex-row">
+          <div class="grow form-row">
+            <label for="run-feature">Feature to run</label>
+            <select id="run-feature">
+              <option value="">— select a feature —</option>
+            </select>
+          </div>
+          <div style="margin-top:1.35rem;display:flex;align-items:center;gap:.5rem">
+            <input type="checkbox" id="run-wizard" style="width:auto">
+            <label for="run-wizard" style="display:inline;margin:0;cursor:pointer">Wizard mode (structured diagnostics on failure)</label>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-run-pipeline">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M3 3.5l10 4.5-10 4.5V3.5z"/>
+            </svg>
+            Run pipeline
+          </button>
+          <button class="btn btn-danger" id="btn-stop-pipeline" disabled>Stop</button>
+          <span id="run-status" class="badge badge-idle" style="margin-left:.25rem">Idle</span>
+        </div>
+      </div>
+
+      <!-- Stage progress tracker -->
+      <div class="card" id="stage-tracker" style="display:none">
+        <div class="card-title">Stage progress</div>
+        <div id="stage-rows" style="display:flex;flex-direction:column;gap:.4rem"></div>
+      </div>
+
+      <!-- Live terminal -->
+      <div style="margin-bottom:.375rem;display:flex;justify-content:space-between;align-items:center">
+        <span class="muted">Live output</span>
+        <button class="btn btn-secondary" id="btn-clear-terminal" style="padding:.2rem .6rem;font-size:.75rem">Clear</button>
+      </div>
+      <div class="terminal" id="terminal" aria-label="Pipeline output" role="log" aria-live="polite"></div>
+    </section>
+
+    <!-- ── Step 4: Run History ────────────────────────────────────────── -->
+    <section id="step-4" class="step-section" style="display:none">
+      <h2 class="section-title">Step 4 — Run History</h2>
+
+      <div class="instr">
+        <strong>Where this data comes from</strong>
+        Every pipeline run appends a JSON entry to <code>logs/pipeline_runs.jsonl</code>
+        via <code>wizard.append_run_log()</code>. Each entry records timestamp,
+        feature name, completed stages, any failure events, and the final status.
+      </div>
+
+      <div class="btn-row" style="margin-bottom:1rem">
+        <button class="btn btn-secondary" id="btn-refresh-runs">Refresh</button>
+      </div>
+
+      <div id="runs-table-wrap"></div>
+    </section>
+
+    <!-- ── Step 5: Log Viewer ─────────────────────────────────────────── -->
+    <section id="step-5" class="step-section" style="display:none">
+      <h2 class="section-title">Step 5 — Log Viewer</h2>
+
+      <div class="instr">
+        <strong>What you're seeing</strong>
+        The last 200 lines of <code>logs/agent_runner.log</code> — the same file that
+        <code>agent_runner.py</code> writes to via Python's <code>logging</code> module.
+        Use <strong>Refresh</strong> after a pipeline run to see new entries.
+      </div>
+
+      <div class="btn-row" style="margin-bottom:.75rem">
+        <button class="btn btn-secondary" id="btn-refresh-log">Refresh</button>
+      </div>
+
+      <div class="terminal" id="log-terminal" style="height:500px" aria-label="Log file contents" role="log"></div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<footer>Made with IBM Bob</footer>
+
+<script>
+"use strict";
+
+// ── State ──────────────────────────────────────────────────────────────────
+const state = {
+  currentStep: 0,
+  runEventSource: null,
+  configData: { agentconfig: {}, env: {} },
+};
+
+// ── DOM helpers ────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const qs = sel => document.querySelector(sel);
+
+function toast(msg, duration = 2800) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), duration);
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function showStep(n) {
+  document.querySelectorAll(".step-section").forEach(s => s.style.display = "none");
+  document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+  const sec = $(`step-${n}`);
+  if (sec) sec.style.display = "";
+  const nav = document.querySelector(`.nav-item[data-step="${n}"]`);
+  if (nav) nav.classList.add("active");
+  state.currentStep = n;
+  // lazy-load step data
+  if (n === 1) loadConfig();
+  if (n === 2) loadFeatureList("#spec-feature-picker");
+  if (n === 3) loadFeatureList("#run-feature");
+  if (n === 4) loadRuns();
+  if (n === 5) loadLog();
+}
+
+document.querySelectorAll(".nav-item").forEach(item => {
+  function activate() { showStep(parseInt(item.dataset.step, 10)); }
+  item.addEventListener("click", activate);
+  item.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") activate(); });
+});
+
+// ── Tab system ─────────────────────────────────────────────────────────────
+document.addEventListener("click", e => {
+  const tab = e.target.closest(".tab");
+  if (!tab) return;
+  const tabId = tab.dataset.tab;
+  const container = tab.closest(".step-section") || document;
+  container.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  container.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  tab.classList.add("active");
+  const panel = $(tabId);
+  if (panel) panel.classList.add("active");
+});
+
+// ── API helpers ────────────────────────────────────────────────────────────
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`HTTP ${res.status}: ${txt}`);
+  }
+  return res.json();
+}
+
+// ── Step 0: Preflight ──────────────────────────────────────────────────────
+$("btn-preflight").addEventListener("click", async () => {
+  const btn = $("btn-preflight");
+  const statusBadge = $("preflight-status");
+  btn.disabled = true;
+  statusBadge.className = "badge badge-running";
+  statusBadge.textContent = "Running…";
+  $("preflight-results").style.display = "none";
+
+  try {
+    const data = await apiFetch("/api/preflight");
+    const tbody = $("preflight-tbody");
+    tbody.innerHTML = "";
+    let allOk = true;
+    for (const c of data.checks) {
+      const tr = document.createElement("tr");
+      tr.className = c.passed ? "pass" : "fail";
+      if (!c.passed) allOk = false;
+      const badge = c.passed
+        ? `<span class="badge badge-ok">✓ OK</span>`
+        : (c.severity === "error"
+            ? `<span class="badge badge-fail">✗ FAIL</span>`
+            : `<span class="badge badge-warn">⚠ WARN</span>`);
+      tr.innerHTML = `
+        <td>${escHtml(c.name)}</td>
+        <td>${badge}</td>
+        <td><pre class="check-detail">${escHtml(c.message)}</pre></td>`;
+      tbody.appendChild(tr);
+    }
+    $("preflight-results").style.display = "";
+    const nav = document.querySelector(`.nav-item[data-step="0"]`);
+    if (allOk) {
+      statusBadge.className = "badge badge-ok";
+      statusBadge.textContent = "All passed";
+      nav.classList.add("done");
+    } else {
+      statusBadge.className = "badge badge-fail";
+      statusBadge.textContent = "Issues found";
+      nav.classList.add("error");
+    }
+  } catch (err) {
+    statusBadge.className = "badge badge-fail";
+    statusBadge.textContent = "Error";
+    toast(`Preflight error: ${err.message}`, 4000);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ── Step 1: Configuration ──────────────────────────────────────────────────
+async function loadConfig() {
+  try {
+    const data = await apiFetch("/api/config");
+    state.configData = data;
+    applyConfigToUI(data);
+  } catch (err) {
+    toast(`Could not load config: ${err.message}`, 4000);
+  }
+}
+
+function applyConfigToUI(data) {
+  const ac = data.agentconfig || {};
+  const llama = ac.llama || {};
+  const env = data.env || {};
+
+  // Server tab
+  $("cfg-host").value = llama.host || "";
+  $("cfg-timeout").value = llama.timeout || 120;
+  $("cfg-mode").value = llama.mode || "auto";
+  const models = llama.models || {};
+  $("cfg-m-dev").value = models.developer || "";
+  $("cfg-m-rev").value = models.reviewer || "";
+  $("cfg-m-sec").value = models.security || "";
+  $("cfg-m-val").value = models.validator || "";
+  $("manual-models").style.display = (llama.mode === "manual") ? "" : "none";
+
+  // Pipeline tab
+  $("cfg-retries").value = ac.max_retries ?? 3;
+  $("cfg-delay").value = ac.retry_delay ?? 2;
+  const review = ac.review || {};
+  $("cfg-coverage").value = review.coverage_threshold ?? 80;
+  const gr = ac.guardrails || {};
+  $("cfg-enforce").checked = gr.enforce !== false;
+
+  // Env tab
+  $("env-llama-host").value = env.LLAMA_HOST || "";
+  $("env-timeout").value = env.LLAMA_TIMEOUT || "";
+  $("env-dev-model").value = env.LLAMA_DEVELOPER_MODEL || "";
+  $("env-rev-model").value = env.LLAMA_REVIEWER_MODEL || "";
+  $("env-sec-model").value = env.LLAMA_SECURITY_MODEL || "";
+  $("env-val-model").value = env.LLAMA_VALIDATOR_MODEL || "";
+  $("env-log-level").value = env.LOG_LEVEL || "INFO";
+}
+
+$("cfg-mode").addEventListener("change", () => {
+  $("manual-models").style.display = $("cfg-mode").value === "manual" ? "" : "none";
+});
+
+function collectConfig() {
+  const ac = JSON.parse(JSON.stringify(state.configData.agentconfig || {}));
+  if (!ac.llama) ac.llama = {};
+  if (!ac.review) ac.review = {};
+  if (!ac.guardrails) ac.guardrails = {};
+  if (!ac.llama.models) ac.llama.models = {};
+
+  ac.llama.host = $("cfg-host").value.trim();
+  ac.llama.timeout = parseInt($("cfg-timeout").value, 10) || 120;
+  ac.llama.mode = $("cfg-mode").value;
+  ac.llama.models.developer = $("cfg-m-dev").value.trim();
+  ac.llama.models.reviewer = $("cfg-m-rev").value.trim();
+  ac.llama.models.security = $("cfg-m-sec").value.trim();
+  ac.llama.models.validator = $("cfg-m-val").value.trim();
+  ac.max_retries = parseInt($("cfg-retries").value, 10) || 3;
+  ac.retry_delay = parseFloat($("cfg-delay").value) || 2;
+  ac.review.coverage_threshold = parseInt($("cfg-coverage").value, 10) || 80;
+  ac.guardrails.enforce = $("cfg-enforce").checked;
+
+  const env = {
+    LLAMA_HOST: $("env-llama-host").value.trim(),
+    LLAMA_TIMEOUT: $("env-timeout").value.trim(),
+    LLAMA_DEVELOPER_MODEL: $("env-dev-model").value.trim(),
+    LLAMA_REVIEWER_MODEL: $("env-rev-model").value.trim(),
+    LLAMA_SECURITY_MODEL: $("env-sec-model").value.trim(),
+    LLAMA_VALIDATOR_MODEL: $("env-val-model").value.trim(),
+    LOG_LEVEL: $("env-log-level").value,
+  };
+
+  return { agentconfig: ac, env };
+}
+
+$("btn-save-config").addEventListener("click", async () => {
+  const btn = $("btn-save-config");
+  btn.disabled = true;
+  try {
+    await apiFetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(collectConfig()),
+    });
+    toast("Configuration saved.");
+    document.querySelector(`.nav-item[data-step="1"]`).classList.add("done");
+  } catch (err) {
+    toast(`Save failed: ${err.message}`, 4000);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$("btn-reload-config").addEventListener("click", () => loadConfig());
+
+// ── Step 2: Spec editor ────────────────────────────────────────────────────
+const PRD_TEMPLATE = `# PRD: <Feature Name>
+
+## Overview
+
+<!-- One paragraph describing what this feature does and why. -->
+
+## Functional Requirements
+
+- **FR-01**: ...
+- **FR-02**: ...
+- **FR-03**: ...
+
+## Acceptance Criteria
+
+1. Given \`<context>\`, when \`<action>\`, then \`<expected outcome>\`.
+2. Given \`<context>\`, when \`<action>\`, then \`<expected outcome>\`.
+3. Given invalid input \`<x>\`, when \`<action>\`, then the system raises / returns \`<error>\`.
+
+## Constraints
+
+- Must run offline (no network calls).
+- Use only Python standard library unless listed below.
+- Allowed third-party packages: *(none by default)*
+
+## Out of scope
+
+- ...
+
+## References
+
+- Related TDD: \`tdd.yaml\` in this directory.
+`;
+
+const TDD_TEMPLATE = `# TDD Plan for <Feature Name>
+# Each test case maps 1-to-1 with a pytest test the Developer Agent must write.
+
+tests:
+  - id: TC-01
+    name: "Happy path — basic valid input"
+    description: "Core function returns the expected value for a standard input."
+    inputs:
+      arg1: ~   # replace with actual value
+    expected_result: ~  # replace with expected return value
+    expected_exception: ~
+
+  - id: TC-02
+    name: "Edge case — boundary value"
+    description: "Verify behaviour at the boundary of valid input range."
+    inputs:
+      arg1: ~
+    expected_result: ~
+    expected_exception: ~
+
+  - id: TC-03
+    name: "Invalid input — raises exception"
+    description: "Non-numeric or otherwise invalid input must raise ValueError."
+    inputs:
+      arg1: "invalid"
+    expected_result: ~
+    expected_exception: ValueError
+`;
+
+async function loadFeatureList(selector) {
+  try {
+    const data = await apiFetch("/api/specs");
+    const sel = qs(selector);
+    if (!sel) return;
+    const current = sel.value;
+    // Clear all but placeholder
+    while (sel.options.length > 1) sel.remove(1);
+    for (const f of (data.features || [])) {
+      const opt = document.createElement("option");
+      opt.value = f;
+      opt.textContent = f;
+      sel.appendChild(opt);
+    }
+    if (current) sel.value = current;
+  } catch (err) {
+    console.warn("Could not load feature list:", err);
+  }
+}
+
+$("btn-load-template").addEventListener("click", () => {
+  $("ta-prd").value = PRD_TEMPLATE;
+  $("ta-tdd").value = TDD_TEMPLATE;
+  toast("Template loaded — edit then save.");
+});
+
+$("btn-load-spec").addEventListener("click", async () => {
+  const feature = ($("spec-feature-picker").value || $("spec-feature-name").value).trim();
+  if (!feature) { toast("Enter or select a feature name first."); return; }
+  try {
+    const data = await apiFetch(`/api/spec?f=${encodeURIComponent(feature)}`);
+    $("ta-prd").value = data.prd || "";
+    $("ta-tdd").value = data.tdd || "";
+    $("spec-feature-name").value = feature;
+    toast(`Loaded spec for '${feature}'.`);
+  } catch (err) {
+    toast(`Load error: ${err.message}`, 4000);
+  }
+});
+
+$("spec-feature-picker").addEventListener("change", () => {
+  const v = $("spec-feature-picker").value;
+  if (v) $("spec-feature-name").value = v;
+});
+
+$("btn-save-spec").addEventListener("click", async () => {
+  const feature = $("spec-feature-name").value.trim();
+  if (!feature) { toast("Enter a feature name before saving."); return; }
+  const prd = $("ta-prd").value;
+  const tdd = $("ta-tdd").value;
+  if (!prd || !tdd) { toast("Both prd.md and tdd.yaml must have content."); return; }
+  const btn = $("btn-save-spec");
+  btn.disabled = true;
+  try {
+    await apiFetch("/api/spec", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feature, prd, tdd }),
+    });
+    toast(`Spec saved to specs/${feature}/`);
+    document.querySelector(`.nav-item[data-step="2"]`).classList.add("done");
+    loadFeatureList("#spec-feature-picker");
+    loadFeatureList("#run-feature");
+  } catch (err) {
+    toast(`Save error: ${err.message}`, 4000);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ── Step 3: Pipeline runner ────────────────────────────────────────────────
+const STAGES = [
+  { key: "preflight",      label: "Pre-flight file check" },
+  { key: "spec_validation", label: "Spec validation" },
+  { key: "code_generation", label: "Code generation" },
+  { key: "guardrail_check", label: "Guardrail scan" },
+  { key: "review",          label: "Review + pytest" },
+];
+
+function buildStageTracker() {
+  const rows = $("stage-rows");
+  rows.innerHTML = "";
+  STAGES.forEach(s => {
+    const div = document.createElement("div");
+    div.id = `stage-${s.key}`;
+    div.style.cssText = "display:flex;align-items:center;gap:.6rem;font-size:.83rem;padding:.25rem 0";
+    div.innerHTML = `
+      <span class="badge badge-idle" id="stage-badge-${s.key}">·</span>
+      <span style="color:#1f2328">${escHtml(s.label)}</span>
+      <span id="stage-msg-${s.key}" style="color:#57606a;font-size:.78rem"></span>`;
+    rows.appendChild(div);
+  });
+}
+
+function setStageStatus(key, status, msg = "") {
+  const badge = $(`stage-badge-${key}`);
+  const msgEl = $(`stage-msg-${key}`);
+  if (!badge) return;
+  badge.className = `badge badge-${status}`;
+  const labels = { idle: "·", running: "Running…", ok: "✓ Done", fail: "✗ Failed", warn: "⚠" };
+  badge.textContent = labels[status] || status;
+  if (msgEl) msgEl.textContent = msg;
+}
+
+// Detect stage transitions from log line text
+function detectStageFromLine(line) {
+  const l = line.toLowerCase();
+  if (l.includes("step 0") || l.includes("spec validation")) return "spec_validation";
+  if (l.includes("developer agent") || l.includes("code generation") || l.includes("generating code")) return "code_generation";
+  if (l.includes("guardrail")) return "guardrail_check";
+  if (l.includes("reviewer") || l.includes("running tests") || l.includes("review")) return "review";
+  return null;
+}
+
+function colorLine(line) {
+  const l = line.toLowerCase();
+  if (l.includes("error") || l.includes("fail") || l.includes("❌") || l.includes("✗")) {
+    return `<span class="t-error">${escHtml(line)}</span>`;
+  }
+  if (l.includes("warn") || l.includes("⚠") || l.includes("↻")) {
+    return `<span class="t-warn">${escHtml(line)}</span>`;
+  }
+  if (l.includes("✓") || l.includes("approved") || l.includes("pass") || l.includes("done")) {
+    return `<span class="t-ok">${escHtml(line)}</span>`;
+  }
+  if (l.includes("step ") || l.includes("attempt ") || l.includes("▶") || l.includes("──")) {
+    return `<span class="t-stage">${escHtml(line)}</span>`;
+  }
+  if (l.includes("debug") || l.includes("dim") || l.startsWith("2026") || /^\d{4}-/.test(line)) {
+    return `<span class="t-dim">${escHtml(line)}</span>`;
+  }
+  return escHtml(line);
+}
+
+function termAppend(html) {
+  const t = $("terminal");
+  t.innerHTML += html + "\n";
+  t.scrollTop = t.scrollHeight;
+}
+
+let currentStage = null;
+
+function startPipeline() {
+  const feature = $("run-feature").value;
+  if (!feature) { toast("Select a feature to run."); return; }
+  if (state.runEventSource) { state.runEventSource.close(); state.runEventSource = null; }
+
+  // Reset UI
+  buildStageTracker();
+  $("stage-tracker").style.display = "";
+  $("terminal").innerHTML = "";
+  $("run-status").className = "badge badge-running";
+  $("run-status").textContent = "Running…";
+  $("btn-run-pipeline").disabled = true;
+  $("btn-stop-pipeline").disabled = false;
+  document.querySelector(`.nav-item[data-step="3"]`).classList.remove("done", "error");
+  currentStage = null;
+  STAGES.forEach(s => setStageStatus(s.key, "idle"));
+
+  const wizard = $("run-wizard").checked ? 1 : 0;
+  const url = `/api/run?f=${encodeURIComponent(feature)}&wizard=${wizard}`;
+  const es = new EventSource(url);
+  state.runEventSource = es;
+
+  es.onmessage = (e) => {
+    const line = e.data;
+
+    if (line === "__DONE__") {
+      es.close();
+      state.runEventSource = null;
+      $("btn-run-pipeline").disabled = false;
+      $("btn-stop-pipeline").disabled = true;
+      return;
+    }
+
+    if (line.startsWith("__EXIT__")) {
+      const code = parseInt(line.replace("__EXIT__", ""), 10);
+      const ok = code === 0;
+      $("run-status").className = `badge ${ok ? "badge-ok" : "badge-fail"}`;
+      $("run-status").textContent = ok ? "APPROVED ✓" : "REJECTED ✗";
+      const navItem = document.querySelector(`.nav-item[data-step="3"]`);
+      navItem.classList.add(ok ? "done" : "error");
+      if (currentStage) setStageStatus(currentStage, ok ? "ok" : "fail");
+      termAppend(`<span class="${ok ? "t-ok" : "t-error"}">${escHtml(
+        ok ? "═══ Pipeline finished: APPROVED ✓ ═══" : "═══ Pipeline finished: REJECTED ✗ ═══"
+      )}</span>`);
+      loadRuns();  // refresh history automatically
+      return;
+    }
+
+    // Stage detection
+    const detectedStage = detectStageFromLine(line);
+    if (detectedStage && detectedStage !== currentStage) {
+      if (currentStage) setStageStatus(currentStage, "ok");
+      currentStage = detectedStage;
+      setStageStatus(currentStage, "running");
+    }
+
+    // Detect inline failures
+    const lc = line.toLowerCase();
+    if ((lc.includes("failed") || lc.includes("❌") || lc.includes("rejected")) && currentStage) {
+      setStageStatus(currentStage, "fail", line.trim().slice(0, 60));
+    }
+    if ((lc.includes("✓") || lc.includes("passed") || lc.includes("clean")) && currentStage) {
+      setStageStatus(currentStage, "ok");
+    }
+
+    termAppend(colorLine(line));
+  };
+
+  es.onerror = () => {
+    if (es.readyState === EventSource.CLOSED) return;
+    es.close();
+    state.runEventSource = null;
+    $("btn-run-pipeline").disabled = false;
+    $("btn-stop-pipeline").disabled = true;
+    $("run-status").className = "badge badge-fail";
+    $("run-status").textContent = "Connection lost";
+    termAppend('<span class="t-error">Connection to server lost.</span>');
+  };
+}
+
+$("btn-run-pipeline").addEventListener("click", startPipeline);
+
+$("btn-stop-pipeline").addEventListener("click", () => {
+  if (state.runEventSource) {
+    state.runEventSource.close();
+    state.runEventSource = null;
+  }
+  $("btn-run-pipeline").disabled = false;
+  $("btn-stop-pipeline").disabled = true;
+  $("run-status").className = "badge badge-warn";
+  $("run-status").textContent = "Stopped";
+  termAppend('<span class="t-warn">Pipeline stopped by user.</span>');
+});
+
+$("btn-clear-terminal").addEventListener("click", () => { $("terminal").innerHTML = ""; });
+
+// ── Step 4: Run history ────────────────────────────────────────────────────
+async function loadRuns() {
+  const wrap = $("runs-table-wrap");
+  try {
+    const data = await apiFetch("/api/runs");
+    const runs = data.runs || [];
+    if (!runs.length) {
+      wrap.innerHTML = `<div class="empty-state">No pipeline runs recorded yet.<br>Run the pipeline first (Step 3).</div>`;
+      return;
+    }
+    const rows = runs.map(r => {
+      const ts = r.timestamp ? new Date(r.timestamp).toLocaleString() : "—";
+      const statusClass = r.final_status === "APPROVED" ? "badge-ok"
+        : r.final_status === "REJECTED" ? "badge-fail" : "badge-warn";
+      const stages = (r.stages_completed || []).join(", ") || "—";
+      const failCount = (r.failures || []).length;
+      return `<tr>
+        <td>${escHtml(ts)}</td>
+        <td>${escHtml(r.feature_name || "—")}</td>
+        <td><span class="badge ${statusClass}">${escHtml(r.final_status || "—")}</span></td>
+        <td style="font-size:.75rem;color:#57606a;max-width:280px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${escHtml(stages)}</td>
+        <td style="text-align:center">${failCount > 0 ? `<span class="badge badge-fail">${failCount}</span>` : "0"}</td>
+      </tr>`;
+    }).join("");
+    wrap.innerHTML = `<table class="run-table">
+      <thead><tr>
+        <th>Timestamp</th><th>Feature</th><th>Status</th><th>Stages</th><th>Failures</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  } catch (err) {
+    wrap.innerHTML = `<div class="empty-state" style="color:#b91c1c">Error loading runs: ${escHtml(err.message)}</div>`;
+  }
+}
+
+$("btn-refresh-runs").addEventListener("click", loadRuns);
+
+// ── Step 5: Log viewer ─────────────────────────────────────────────────────
+async function loadLog() {
+  const t = $("log-terminal");
+  try {
+    const data = await apiFetch("/api/log");
+    const lines = data.lines || [];
+    if (!lines.length) {
+      t.innerHTML = '<span class="t-dim">Log file is empty or does not exist yet.</span>';
+      return;
+    }
+    t.innerHTML = lines.map(line => colorLine(line)).join("\n");
+    t.scrollTop = t.scrollHeight;
+  } catch (err) {
+    t.innerHTML = `<span class="t-error">Error loading log: ${escHtml(err.message)}</span>`;
+  }
+}
+
+$("btn-refresh-log").addEventListener("click", loadLog);
+
+// ── Utility ────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+showStep(0);
+</script>
+</body>
+</html>
